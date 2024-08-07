@@ -2,6 +2,7 @@
 using APICatalogo.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 
 namespace APICatalogo.Controllers;
@@ -24,14 +25,9 @@ public class ProdutosController : ControllerBase
     /// <returns>Retorna uma lista de produtos</returns>
     //IEnumerable é mais otimizado que o List<>
     [HttpGet]
-    public ActionResult<IEnumerable<Produto>> GetAllProdutos()
+    public async Task<ActionResult<IEnumerable<Produto>>> GetAllProdutos()
     {
-        var produtos = _context.Produtos.AsNoTracking().ToList();
-
-        if (produtos is null)
-            return NotFound("Produtos não encontrados.");
-
-        return produtos;
+        return await _context.Produtos.AsNoTracking().ToListAsync();
     }
 
     /// <summary>
@@ -39,10 +35,10 @@ public class ProdutosController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id:int}", Name="ObterProduto")] //Especifica que o id tem que ser um integer
-    public ActionResult<Produto> GetById(int id)
+    [HttpGet("{id:int:min(1)}", Name="ObterProduto")] //Especifica que o id tem que ser um integer
+    public async Task<ActionResult<Produto>> GetById(int id, [BindRequired]string nome)
     {
-        var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
+        var produto = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.ProdutoId == id);
 
         if (produto == null)
             return NotFound($"Produto {id} não encontrado.");
