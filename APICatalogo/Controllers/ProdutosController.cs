@@ -26,7 +26,7 @@ public class ProdutosController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Produto>> GetAllProdutos()
     {
-        var produtos = _context.Produtos.ToList();
+        var produtos = _context.Produtos.AsNoTracking().ToList();
 
         if (produtos is null)
             return NotFound("Produtos não encontrados.");
@@ -34,10 +34,15 @@ public class ProdutosController : ControllerBase
         return produtos;
     }
 
-    [HttpGet("{id:int}", Name="ObterProduto")]
+    /// <summary>
+    /// Método que resgata os produtos por ID
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("{id:int}", Name="ObterProduto")] //Especifica que o id tem que ser um integer
     public ActionResult<Produto> GetById(int id)
     {
-        var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+        var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
 
         if (produto == null)
             return NotFound($"Produto {id} não encontrado.");
@@ -45,6 +50,11 @@ public class ProdutosController : ControllerBase
         return produto;
     }
 
+    /// <summary>
+    /// Método que realiza o cadastro dos novos produtos
+    /// </summary>
+    /// <param name="produto"></param>
+    /// <returns></returns>
     [HttpPost]
     public ActionResult Post(Produto produto)
     {
@@ -59,6 +69,12 @@ public class ProdutosController : ControllerBase
         return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
     }
 
+    /// <summary>
+    /// Método que realiza a atualização de um produto segundo o id especificado
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="produto"></param>
+    /// <returns></returns>
     [HttpPut("{id:int}")]
     public ActionResult Put(int id, Produto produto)
     {
@@ -71,9 +87,15 @@ public class ProdutosController : ControllerBase
         return Ok(produto);
     }
 
+    /// <summary>
+    /// Método que remove o produto segundo o id enviado
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpDelete("{id:int}")]
     public ActionResult Delete(int id)
     {
+        //Procura o primeiro elemento, caso não encontre o padrão é null
         var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
         //var produto = _context.Produtos.Find(id);
 
