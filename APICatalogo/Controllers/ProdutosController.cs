@@ -1,5 +1,6 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Models;
+using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -12,11 +13,11 @@ namespace APICatalogo.Controllers;
 public class ProdutosController : ControllerBase
 {
     //Injeção de dependência
-    private readonly AppDbContext _context;
+    private readonly IProdutoRepository _repository;
 
-    public ProdutosController(AppDbContext context)
+    public ProdutosController(IProdutoRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     /// <summary>
@@ -25,9 +26,9 @@ public class ProdutosController : ControllerBase
     /// <returns>Retorna uma lista de produtos</returns>
     //IEnumerable é mais otimizado que o List<>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Produto>>> GetAllProdutos()
+    public ActionResult<IEnumerable<Produto>> GetAllProdutos()
     {
-        return await _context.Produtos.AsNoTracking().ToListAsync();
+        return _repository.GetProdutos().ToList();
     }
 
     /// <summary>
@@ -36,9 +37,9 @@ public class ProdutosController : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id:int:min(1)}", Name="ObterProduto")] //Especifica que o id tem que ser um integer
-    public async Task<ActionResult<Produto>> GetById(int id, [BindRequired]string nome)
+    public ActionResult<Produto> GetById(int id)
     {
-        var produto = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.ProdutoId == id);
+        var produto = _repository.GetProduto(id);
 
         if (produto == null)
             return NotFound($"Produto {id} não encontrado.");
@@ -57,12 +58,9 @@ public class ProdutosController : ControllerBase
         if (produto == null)
             return BadRequest();
 
-        _context.Produtos.Add(produto);
+        var produtoCriado = _repository.Create(produto);
 
-        // Persiste os dados na tabela
-        _context.SaveChanges();
-
-        return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+        return new CreatedAtRouteResult("ObterProduto", new { id = produtoCriado.ProdutoId }, produtoCriado);
     }
 
     /// <summary>
@@ -77,10 +75,12 @@ public class ProdutosController : ControllerBase
         if (id != produto.ProdutoId)
             return BadRequest();
 
-        _context.Entry(produto).State = EntityState.Modified;
-        _context.SaveChanges();
+        bool atualizado = _repository.Update(produto);
 
-        return Ok(produto);
+        if (atualizado)
+            return Ok(produto);
+        else
+            return StatusCode(500, $"Falha ao atualizar o produto de id = {id}");
     }
 
     /// <summary>
@@ -91,17 +91,17 @@ public class ProdutosController : ControllerBase
     [HttpDelete("{id:int}")]
     public ActionResult Delete(int id)
     {
-        //Procura o primeiro elemento, caso não encontre o padrão é null
-        var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-        //var produto = _context.Produtos.Find(id);
+        var produto = _repository.GetProduto(id);
 
         if (produto == null)
             return NotFound("Produto não encontrado.");
 
-        _context.Produtos.Remove(produto);
-        _context.SaveChanges();
+        bool deletado = _repository.Delete(id);
 
-        return Ok(produto);
+        if (deletado)
+            return Ok(produto);
+        else
+            return StatusCode(500, $"Falha ao excluir o produto de id{id}");
     }
 
 

@@ -15,7 +15,7 @@ public class Produto : IValidatableObject
     //[PrimeiraLetraMaiuscula]
     public string? Nome { get; set; }
     [Required]
-    [StringLength(10, ErrorMessage = "A descrição deve ter no máximo {1} caracteres")]
+    [StringLength(300, ErrorMessage = "A descrição deve ter no máximo {1} caracteres")]
     public string? Descricao { get; set; }
     [Required]
     [Range(1, 10000, ErrorMessage = "O preço deve estar entre {1} e {2}")]

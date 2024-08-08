@@ -2,6 +2,7 @@ using APICatalogo.Context;
 using APICatalogo.Extensions;
 using APICatalogo.Filters;
 using APICatalogo.Logging;
+using APICatalogo.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -27,6 +28,10 @@ var sqlConnection = builder.Configuration.GetConnectionString("DefaultConnection
 
 //Define o provedor do banco de dados
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(sqlConnection));
+
+//toda vez que alguma classe instanciar da interface ICategoriaRepository, utilizará os métodos da classe CategoriaRepository
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
 //builder.Services.AddScoped<ApiLoggingFilter>();
 
