@@ -32,6 +32,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(sqlC
 //toda vez que alguma classe instanciar da interface ICategoriaRepository, utilizará os métodos da classe CategoriaRepository
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 //builder.Services.AddScoped<ApiLoggingFilter>();
 
