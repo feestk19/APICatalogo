@@ -1,7 +1,10 @@
-﻿using APICatalogo.Models;
+﻿using APICatalogo.Controllers;
+using APICatalogo.Models;
+using APICatalogo.Pagination;
 
 namespace APICatalogo.Repositories;
 public interface ICategoriaRepository : IRepository<Categoria>
 {
-   
+    PagedList<Categoria> GetCategorias(CategoriasParameters categoriasParam);
+    PagedList<Categoria> GetCategoriasFiltroNome(CategoriasFiltroNome categoriasParameters);
 }

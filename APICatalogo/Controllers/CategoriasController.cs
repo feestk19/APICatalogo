@@ -3,9 +3,11 @@ using APICatalogo.DTOs;
 using APICatalogo.DTOs.Mappings;
 using APICatalogo.Filters;
 using APICatalogo.Models;
+using APICatalogo.Pagination;
 using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace APICatalogo.Controllers;
 
@@ -20,6 +22,22 @@ public class CategoriasController : ControllerBase
     {
         _uof = uof;
         _logger = logger;
+    }
+
+    [HttpGet("filter/nome/pagination")]
+    public ActionResult<IEnumerable<CategoriaDTO>> GetCategoriasFiltradas([FromQuery] CategoriasFiltroNome categoriasFiltro)
+    {
+        var categoriasFiltradas = _uof.CategoriaRepository.GetCategoriasFiltroNome(categoriasFiltro);
+
+        return ObterCategorias(categoriasFiltradas);
+    }
+
+    [HttpGet("pagination")]
+    public ActionResult<IEnumerable<CategoriaDTO>> Get([FromQuery] CategoriasParameters categoriasParameters)
+    {
+        var categoriasFiltradas = _uof.CategoriaRepository.GetCategorias(categoriasParameters);
+
+        return ObterCategorias(categoriasFiltradas);
     }
 
     [HttpGet]
@@ -106,4 +124,27 @@ public class CategoriasController : ControllerBase
 
         return Ok(categoriaExcluidaDTO);
     }
+
+    #region Métodos Aux
+
+    public ActionResult<IEnumerable<CategoriaDTO>> ObterCategorias(PagedList<Categoria> categorias)
+    {
+        var metadata = new
+        {
+            categorias.TotalCount,
+            categorias.PageSize,
+            categorias.CurrentPage,
+            categorias.TotalPages,
+            categorias.HasNext,
+            categorias.HasPrevious
+        };
+
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+        var categoriasDto = categorias.ToCategoriaDTOList();
+
+        return Ok(categoriasDto);
+    }
+
+    #endregion
 }

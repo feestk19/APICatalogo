@@ -1,5 +1,6 @@
 ﻿using APICatalogo.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace APICatalogo.DTOs;
 
@@ -15,12 +16,11 @@ public class ProdutoDTO
     public string? Descricao { get; set; }
     [Required]
     public decimal Preco { get; set; }
-    public float Estoque { get; set; }
-    public DateTime DataCadastro { get; set; }
     [Required]
     [StringLength(300)]
     public string? ImagemUrl { get; set; }
     public int CategoriaId { get; set; }
+    [JsonIgnore]
     public Categoria? Categoria { get; set; }
 
 
