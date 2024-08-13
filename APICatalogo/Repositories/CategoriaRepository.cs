@@ -4,6 +4,7 @@ using APICatalogo.Models;
 using APICatalogo.Pagination;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace APICatalogo.Repositories;
 
 public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
@@ -12,26 +13,38 @@ public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
     public CategoriaRepository(AppDbContext context) : base(context)
     { }
 
-    public PagedList<Categoria> GetCategorias(CategoriasParameters categoriasParam)
+    public async Task<PagedList<Categoria>> GetCategoriasAsync(CategoriasParameters categoriasParam)
     {
-        var categorias = GetAll().OrderBy(p => p.CategoriaId).AsQueryable();
+        var categorias = await GetAllAsync();
 
-        var categoriasOrdenadas = PagedList<Categoria>.ToPagedList(categorias, categoriasParam.PageNumber, categoriasParam.PageSize);
+        var categoriasOrdenadas = _context.Categorias.OrderBy(p => p.CategoriaId).AsQueryable();
 
-        return categoriasOrdenadas;
+        var totalItems = await categoriasOrdenadas.CountAsync();
+
+        var resultado = await categoriasOrdenadas
+            .Skip((categoriasParam.PageNumber - 1) * categoriasParam.PageSize)
+            .Take(categoriasParam.PageSize)
+            .ToListAsync();
+
+        return new PagedList<Categoria>(resultado, totalItems, categoriasParam.PageNumber, categoriasParam.PageSize);
     }
 
-    public PagedList<Categoria> GetCategoriasFiltroNome(CategoriasFiltroNome categoriasParameters)
+    public async Task<PagedList<Categoria>> GetCategoriasFiltroNomeAsync(CategoriasFiltroNome categoriasParameters)
     {
-        var categorias = GetAll().AsQueryable();
+        var categorias = _context.Categorias.AsQueryable();
 
         if (!string.IsNullOrEmpty(categoriasParameters.Nome))
         {
             categorias = categorias.Where(c => c.Nome.Contains(categoriasParameters.Nome));
         }
 
-        var categoriasFiltradas = PagedList<Categoria>.ToPagedList(categorias, categoriasParameters.PageNumber, categoriasParameters.PageSize);
+        var totalItems = await categorias.CountAsync();
 
-        return categoriasFiltradas;
+        var resultado = await categorias
+            .Skip((categoriasParameters.PageNumber - 1) * categoriasParameters.PageSize)
+            .Take(categoriasParameters.PageSize)
+            .ToListAsync();
+
+        return new PagedList<Categoria>(resultado, totalItems, categoriasParameters.PageNumber, categoriasParameters.PageSize); ;
     }
 }
