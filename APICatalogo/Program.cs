@@ -60,6 +60,18 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("Admin").RequireClaim("id", "fellipe"));
+
+    options.AddPolicy("ExclusivePolicyOnly", policy =>
+    {
+        policy.RequireAssertion(context => context.User.HasClaim(Claim => Claim.Type == "id" && Claim.Value == "fellipe") || context.User.IsInRole("SuperAdmin"));
+    });
+});
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().
     AddEntityFrameworkStores<AppDbContext>().
     AddDefaultTokenProviders();

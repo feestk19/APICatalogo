@@ -70,7 +70,7 @@ public class ProdutosController : ControllerBase
         return Ok(produtosDto);
     }
 
-    [Authorize]
+    [Authorize(Policy = "UserOnly")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
     {
