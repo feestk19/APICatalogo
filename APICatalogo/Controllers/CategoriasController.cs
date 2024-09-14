@@ -8,13 +8,14 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace APICatalogo.Controllers;
 
 
 [Route("[controller]")]
 [ApiController]
-//[EnableRateLimiting("fixedwindow")]
+[Produces("application/json")]
 public class CategoriasController : ControllerBase
 {
     private readonly IUnitOfWork _uof;
@@ -27,9 +28,15 @@ public class CategoriasController : ControllerBase
         _uof = uof;
     }
 
-    //[Authorize]
+    /// <summary>
+    /// Obtém uma lista de objetos Categoria
+    /// </summary>
+    /// <returns>Uma lista de objetos categoria</returns>
     [HttpGet]
     [DisableRateLimiting]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesDefaultResponseType]
     public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
     {
         var categorias = await _uof.CategoriaRepository.GetAllAsync();
@@ -42,6 +49,11 @@ public class CategoriasController : ControllerBase
         return Ok(categoriasDto);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="categoriasParameters"></param>
+    /// <returns></returns>
     [HttpGet("pagination")]
     public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get([FromQuery]
                                CategoriasParameters categoriasParameters)
@@ -116,7 +128,11 @@ public class CategoriasController : ControllerBase
             novaCategoriaDto);
     }
 
+#pragma warning disable CS1591
+
+    
     [HttpPut("{id:int}")]
+    [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
     public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
     {
         if (id != categoriaDto.CategoriaId)
@@ -134,6 +150,7 @@ public class CategoriasController : ControllerBase
 
         return Ok(categoriaAtualizadaDto);
     }
+#pragma warning restore CS1591
 
     [Authorize(Policy = "AdminOnly")]
     [HttpDelete("{id:int}")]

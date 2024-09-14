@@ -12,6 +12,7 @@ namespace APICatalogo.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[ApiConventionType(typeof(DefaultApiConventions))]
 public class ProdutosController : ControllerBase
 {
     private readonly IUnitOfWork _uof;
@@ -74,24 +75,40 @@ public class ProdutosController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
     {
-        var produtos = await _uof.ProdutoRepository.GetAllAsync();
-        if (produtos is null)
-            return NotFound();
+        try
+        {
+            var produtos = await _uof.ProdutoRepository.GetAllAsync();
 
-        var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
-        return Ok(produtosDto);
+            if (produtos is null)
+                return NotFound();
+
+            var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+            return Ok(produtosDto);
+        }
+        catch (Exception)
+        {
+            return BadRequest();
+        }
     }
 
     [HttpGet("{id}", Name = "ObterProduto")]
     public async Task<ActionResult<ProdutoDTO>> Get(int id)
     {
-        var produto = await _uof.ProdutoRepository.GetAsync(c => c.ProdutoId == id);
-        if (produto is null)
+        try
         {
-            return NotFound("Produto não encontrado...");
+            var produto = await _uof.ProdutoRepository.GetAsync(c => c.ProdutoId == id);
+
+            if (produto is null)
+            {
+                return NotFound("Produto não encontrado...");
+            }
+            var produtoDto = _mapper.Map<ProdutoDTO>(produto);
+            return Ok(produtoDto);
         }
-        var produtoDto = _mapper.Map<ProdutoDTO>(produto);
-        return Ok(produtoDto);
+        catch (Exception)
+        {
+            return BadRequest();
+        }
     }
 
     [HttpPost]
